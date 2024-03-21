@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1048336464033",
+    "project_id": "enableu-e9872",
+    "storage_bucket": "enableu-e9872.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1048336464033:android:b575010ed302ccd0b298e0",
+        "android_client_info": {
+          "package_name": "com.example.fyp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAsDoeK90d5NHrwBfntrnhUtjpfBzgtpI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

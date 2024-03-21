@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/components/text_field.dart';
@@ -24,12 +25,21 @@ class _RegisterPageState extends State<RegisterPage> {
         Navigator.pop(context);
         displayMessage("Passwords don't match");
       }
+      //try creating user
       try{
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        //create user
+      UserCredential userCredential=await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailTextController.text,
           password: passwordTextController.text);
-      if(context.mounted) Navigator.pop(context);
-      }
+      //after creating user create new document
+      FirebaseFirestore.instance.collection("users").doc(userCredential.user!.email!)
+      .set({
+        'username':emailTextController.text.split("@")[0],
+        'bio': 'empty bio...',
+
+      });
+      //pop loading circle
+      Navigator.pop(context);      }
       on FirebaseAuthException catch(e){
         Navigator.pop(context);
         displayMessage(e.code);
