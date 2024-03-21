@@ -1,24 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp/Games/components/info_card.dart'; // Adjust the import path as necessary
+import 'package:fyp/Games/info_card.dart';
+import 'package:fyp/components/game_drawer.dart';
+// Adjust the import path as necessary
 import 'package:fyp/Games/gamesmain.dart';
-import 'package:fyp/Games/utils/game_utils.dart'; // Adjust the import path as necessary
+import 'package:fyp/Games/games_util.dart';
+import 'package:fyp/pages/landing_page.dart'; // Adjust the import path as necessary
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      home: MemHomeScreen(),
-    );
-  }
-}
 
 class MemHomeScreen extends StatefulWidget {
   const MemHomeScreen({Key? key}) : super(key: key);
@@ -48,30 +36,47 @@ class _HomeScreenState extends State<MemHomeScreen> {
     });
   }
 
+  void goToHomePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+
+  void goToGamePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => GamesListPage()),
+    );
+  }
   void showPauseDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Game Options"),
+          backgroundColor: Colors.grey[500],
+          title: Text("M E N U"),
           content:
-              Text("The game is completed! What would you like to do next?"),
+              Text("Game is Paused. What would you like to do?"),
           actions: <Widget>[
             TextButton(
-              child: Text("Restart"),
+              child: Text("Restart",style: TextStyle(color: Colors.grey[900]),),
               onPressed: () {
                 restartGame();
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text("Cancel"),
+              child: Text("Cancel",style: TextStyle(color: Colors.grey[900]),),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text("Quit"),
+              child: Text("Quit",style: TextStyle(color: Colors.grey[900]),),
               onPressed: () {
                 Navigator.push(
                     context,
@@ -103,7 +108,9 @@ class _HomeScreenState extends State<MemHomeScreen> {
         ),
         centerTitle: true,
       ),
-      backgroundColor: Color(0xFFE55870),
+      drawer: MyGameDrawer(onHomeTap: goToHomePage,
+      onGameTap: goToGamePage,),
+      backgroundColor: Colors.grey,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,

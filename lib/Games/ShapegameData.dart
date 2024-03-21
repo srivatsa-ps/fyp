@@ -5,7 +5,7 @@ class Itemdata {
 }
 
 List<Itemdata> itemlist = [
-  Itemdata(name: "1", address: "assets/images/octo.svg"),
-  Itemdata(name: "2", address: "assets/images/shark.svg"),
-  Itemdata(name: "3", address: "assets/images/whale.svg")
+  Itemdata(name: "1", address: "images/octo.svg"),
+  Itemdata(name: "2", address: "images/shark.svg"),
+  Itemdata(name: "3", address: "images/whale.svg")
 ];

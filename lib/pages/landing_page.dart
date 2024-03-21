@@ -1,8 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:fyp/habit_tracker/pages/habit_tracker.dart';
-import 'package:fyp/pages/forum.dart'; // Import your Forum page here
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fyp/Games/gamesmain.dart';
+import 'package:fyp/pages/forum.dart';
+
+import '../auth/auth.dart';
+import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,15 +19,14 @@ class _HomePageState extends State<HomePage> {
 
   void signOut(BuildContext context) {
     FirebaseAuth.instance.signOut();
-    // Navigate to login or landing page after sign out
+    // Navigate back to AuthPage by popping the navigation stack
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
-
-  final userCollection = FirebaseFirestore.instance.collection('users');
 
   @override
   void initState() {
     super.initState();
-    currentUser = FirebaseAuth.instance.currentUser; // Initialize currentUser here
+    currentUser = FirebaseAuth.instance.currentUser;
   }
 
   @override
@@ -34,6 +36,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             onPressed: () => signOut(context),
@@ -47,119 +50,142 @@ class _HomePageState extends State<HomePage> {
             .doc(currentUser?.email)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final userData = snapshot.data!.data() as Map<String, dynamic>;
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'Welcome ${userData['username']}',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 20.0),
-                  CircleAvatar(
-                    backgroundColor: Colors.yellow, // Placeholder color
-                    radius: 60.0,
-                    child: Icon(
-                      Icons.account_circle,
-                      color: Colors.white,
-                      size: 50.0,
-                    ),
-                  ),
-                  SizedBox(height: 40.0),
-                  GestureDetector(
-                    onTap: () {
-                      try {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Forum()),
-                        );
-                      } catch (e) {
-                        print('Error navigating to Forum page: $e');
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 20.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      child: Text(
-                        'Discussion Forum',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20.0),
-                  GestureDetector(
-                    onTap: () {
-                      // Add functionality for Play Games button
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 20.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      child: Text(
-                        'Play Games',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20.0),
-                  GestureDetector(
-                    onTap: () {
-                      // try {
-                      //   Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //         builder: (context) => HabitTracker()),
-                      //   );
-                      // } catch (e) {
-                      //   print('Error navigating to Habit tracking page: $e');
-                      // }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 20.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      child: Text(
-                        'Track your progress',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              child: CircularProgressIndicator(),
             );
-          } else {
-            // Return a progress indicator or placeholder widget if snapshot doesn't have data
-            return CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return Center(
+              child: Text('No user data found'),
+            );
           }
+
+          final userData = snapshot.data!.data() as Map<String, dynamic>;
+          if (userData.isEmpty) {
+            return Center(
+              child: Text('No user data found'),
+            );
+          }
+
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Welcome ${userData['username']}',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                CircleAvatar(
+                  backgroundColor: Colors.yellow,
+                  radius: 60.0,
+                  child: Icon(
+                    Icons.account_circle,
+                    color: Colors.white,
+                    size: 50.0,
+                  ),
+                ),
+                SizedBox(height: 40.0),
+                GestureDetector(
+                  onTap: () {
+                    try {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Forum()),
+                      );
+                    } catch (e) {
+                      print('Error navigating to Forum page: $e');
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 20.0),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: Text(
+                      'Discussion Forum',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                GestureDetector(
+                  onTap: () {
+                    try {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => GamesListPage()),
+                      );
+                    } catch (e) {
+                      print('Error navigating to Forum page: $e');
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 20.0),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: Text(
+                      'Play Games',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                GestureDetector(
+                  onTap: () {
+// try {
+//   Navigator.push(
+//     context,
+//     MaterialPageRoute(
+//         builder: (context) => HabitTracker()),
+//   );
+// } catch (e) {
+//   print('Error navigating to Habit tracking page: $e');
+// }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 20.0),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    child: Text(
+                      'Track your progress',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                // Add your GestureDetector widgets here
+              ],
+            ),
+          );
         },
       ),
     );

@@ -2,28 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fyp/Games/gamesmain.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fyp/components/game_drawer.dart';
+import '../pages/landing_page.dart';
 import 'ShapegameData.dart'; // Make sure this path is correct
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations(
-          [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight])
-      .then((_) => runApp(MyApp()));
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: DragPicture(),
-    );
-  }
-}
 
 class DragPicture extends StatefulWidget {
   @override
@@ -37,6 +19,23 @@ class _DragPictureState extends State<DragPicture> {
   double newSize = 70;
 
   // Reset game to its initial state
+
+  void goToHomePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+
+  void goToGamePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => GamesListPage()),
+    );
+  }
   void restartGame() {
     setState(() {
       _isDone = [false, false, false]; // Reset to initial state
@@ -49,7 +48,7 @@ class _DragPictureState extends State<DragPicture> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.greenAccent,
+        backgroundColor: Colors.grey,
         elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -62,7 +61,8 @@ class _DragPictureState extends State<DragPicture> {
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
+      drawer: MyGameDrawer(onHomeTap: goToHomePage,
+        onGameTap: goToGamePage,),      body: SafeArea(
         child: Center(
           child: Column(
             children: [
@@ -81,7 +81,7 @@ class _DragPictureState extends State<DragPicture> {
       height: 180,
       decoration: BoxDecoration(
           image:
-              DecorationImage(image: AssetImage("assets/images/board3.png"))),
+              DecorationImage(image: AssetImage("images/board3.png"))),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -108,9 +108,9 @@ class _DragPictureState extends State<DragPicture> {
                               : Container(
                                   height: itemSize,
                                   width: itemSize,
-                                  child: SvgPicture.asset(item.address,
-                                      color: Colors.black45),
-                                );
+                                  child: SvgPicture.asset(item.address),
+                                      color: Colors.black45);
+
                         },
                       ),
                     ))
@@ -182,24 +182,24 @@ class _DragPictureState extends State<DragPicture> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Game Options"),
-          content: Text("What would you like to do?"),
+          title: Text("M E N U"),
+          content: Text("Game is Paused. What would you like to do?"),
           actions: <Widget>[
             TextButton(
-              child: Text("Restart"),
+              child: Text("Restart",style: TextStyle(color: Colors.grey[900]),),
               onPressed: () {
                 restartGame(); // Call restartGame when Restart is pressed
                 Navigator.of(context).pop(); // Close the dialog
               },
             ),
             TextButton(
-              child: Text("Cancel"),
+              child: Text("Cancel",style: TextStyle(color: Colors.grey[900]),),
               onPressed: () {
                 Navigator.of(context).pop(); // Just close the dialog
               },
             ),
             TextButton(
-              child: Text("Quit"),
+              child: Text("Quit",style: TextStyle(color: Colors.grey[900]),),
               onPressed: () {
                 Navigator.push(
                     context,
