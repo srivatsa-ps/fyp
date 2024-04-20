@@ -164,7 +164,7 @@ class _HomePageState extends State<HomePage> {
                             builder: (context) => LeaderboardPage()),
                       );
                     } catch (e) {
-                      print('Error navigating to Habit tracking page: $e');
+                      print('Error navigating to Leaderboard page: $e');
                     }
                   },
                   child: Container(

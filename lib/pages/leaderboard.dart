@@ -21,7 +21,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   Future<void> fetchLeaderboard() async {
     QuerySnapshot snapshot = await _firestore
         .collection('users')
-        .orderBy('bestScore')
+        .orderBy('bestScore',
+            descending: false) // Fetch with ascending order for lower scores
         .limit(10)
         .get();
 
@@ -41,26 +42,63 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     });
   }
 
+  Widget rankIcon(int rank) {
+    // Function to return appropriate icon for rank
+    switch (rank) {
+      case 0:
+        return Icon(Icons.star, color: Colors.yellow[700], size: 30); // Gold
+      case 1:
+        return Icon(Icons.star_half,
+            color: Colors.grey[350], size: 30); // Silver
+      case 2:
+        return Icon(Icons.star_border,
+            color: Colors.brown[600], size: 30); // Bronze
+      default:
+        return SizedBox(); // Empty box for ranks below top 3
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Leaderboard', style: TextStyle(color: Colors.white)),
+        title: RichText(
+            text: TextSpan(
+                text: "Leader",
+                style: TextStyle(
+                    color: Colors.deepPurple,
+                    fontSize: 30.0,
+                    fontWeight: FontWeight.bold),
+                children: [
+              TextSpan(
+                  text: " Board",
+                  style: TextStyle(
+                      color: Colors.pink,
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold))
+            ])),
         backgroundColor: Colors.blueGrey,
         elevation: 0,
       ),
       body: _leaderboard.isEmpty
           ? Center(child: CircularProgressIndicator())
-          : ListView.separated(
+          : ListView.builder(
               padding: EdgeInsets.all(16),
               itemCount: _leaderboard.length,
               itemBuilder: (context, index) {
-                return Card(
-                  elevation: 4,
-                  shadowColor: Colors.blueGrey.shade100,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                return Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: index == 0
+                              ? Colors.amber
+                              : index == 1
+                                  ? Colors.grey
+                                  : index == 2
+                                      ? Colors.brown
+                                      : Colors.white,
+                          width: 3.0,
+                          style: BorderStyle.solid),
+                      borderRadius: BorderRadius.circular(5.0)),
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: Colors.blueGrey,
@@ -75,11 +113,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text('Best Score: ${_leaderboard[index].score}'),
-                    trailing: Icon(Icons.star, color: Colors.amber),
+                    trailing: rankIcon(index),
                   ),
                 );
               },
-              separatorBuilder: (context, index) => Divider(),
             ),
     );
   }
