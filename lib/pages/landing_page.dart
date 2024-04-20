@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fyp/Games/gamesmain.dart';
 import 'package:fyp/pages/forum.dart';
+import 'package:fyp/pages/leaderboard.dart';
 
 import '../auth/auth.dart';
 import 'login_page.dart';
@@ -107,8 +108,8 @@ class _HomePageState extends State<HomePage> {
                     }
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 10.0, horizontal: 20.0),
+                    padding:
+                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
                     decoration: BoxDecoration(
                       color: Colors.blue,
                       borderRadius: BorderRadius.circular(20.0),
@@ -129,15 +130,16 @@ class _HomePageState extends State<HomePage> {
                     try {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => GamesListPage()),
+                        MaterialPageRoute(
+                            builder: (context) => GamesListPage()),
                       );
                     } catch (e) {
                       print('Error navigating to Forum page: $e');
                     }
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 10.0, horizontal: 20.0),
+                    padding:
+                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
                     decoration: BoxDecoration(
                       color: Colors.blue,
                       borderRadius: BorderRadius.circular(20.0),
@@ -155,25 +157,25 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 20.0),
                 GestureDetector(
                   onTap: () {
-// try {
-//   Navigator.push(
-//     context,
-//     MaterialPageRoute(
-//         builder: (context) => HabitTracker()),
-//   );
-// } catch (e) {
-//   print('Error navigating to Habit tracking page: $e');
-// }
+                    try {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => LeaderboardPage()),
+                      );
+                    } catch (e) {
+                      print('Error navigating to Habit tracking page: $e');
+                    }
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 10.0, horizontal: 20.0),
+                    padding:
+                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
                     decoration: BoxDecoration(
                       color: Colors.blue,
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                     child: Text(
-                      'Track your progress',
+                      'Leaderboard',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20.0,

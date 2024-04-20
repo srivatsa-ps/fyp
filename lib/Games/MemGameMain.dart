@@ -6,6 +6,8 @@ import 'package:fyp/Games/gamesmain.dart';
 import 'package:fyp/Games/games_util.dart';
 import 'package:fyp/pages/landing_page.dart';
 import 'package:audioplayers/audioplayers.dart'; // Import the audioplayers package
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MemHomeScreen extends StatefulWidget {
   const MemHomeScreen({Key? key}) : super(key: key);
@@ -18,7 +20,6 @@ class _HomeScreenState extends State<MemHomeScreen> {
   TextStyle whiteText = TextStyle(color: Colors.white);
   Game _game = Game();
   AudioPlayer audioPlayer = AudioPlayer(); // Audio player instance
-
   int tries = 0;
   int score = 0;
 
@@ -38,6 +39,13 @@ class _HomeScreenState extends State<MemHomeScreen> {
       tries = 0;
       score = 0;
     });
+  }
+
+  void updateFirebaseWithScore() {
+    final currentUserEmail = FirebaseAuth.instance.currentUser!.email;
+    FirebaseFirestore.instance.collection('users').doc(currentUserEmail).set({
+      'bestScore': tries,
+    }, SetOptions(merge: true));
   }
 
   void goToHomePage() {
@@ -90,6 +98,7 @@ class _HomeScreenState extends State<MemHomeScreen> {
                 style: TextStyle(color: Colors.grey[900]),
               ),
               onPressed: () {
+                updateFirebaseWithScore(); // Update score to Firebase when the user quits
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => GamesListPage()));
               },
