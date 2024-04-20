@@ -2,11 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/Games/info_card.dart';
 import 'package:fyp/components/game_drawer.dart';
-// Adjust the import path as necessary
 import 'package:fyp/Games/gamesmain.dart';
 import 'package:fyp/Games/games_util.dart';
-import 'package:fyp/pages/landing_page.dart'; // Adjust the import path as necessary
-
+import 'package:fyp/pages/landing_page.dart';
+import 'package:audioplayers/audioplayers.dart'; // Import the audioplayers package
 
 class MemHomeScreen extends StatefulWidget {
   const MemHomeScreen({Key? key}) : super(key: key);
@@ -18,6 +17,7 @@ class MemHomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<MemHomeScreen> {
   TextStyle whiteText = TextStyle(color: Colors.white);
   Game _game = Game();
+  AudioPlayer audioPlayer = AudioPlayer(); // Audio player instance
 
   int tries = 0;
   int score = 0;
@@ -26,6 +26,10 @@ class _HomeScreenState extends State<MemHomeScreen> {
   void initState() {
     super.initState();
     _game.initGame();
+  }
+
+  void playSound(String fileName) {
+    audioPlayer.play(AssetSource(fileName));
   }
 
   void restartGame() {
@@ -44,7 +48,6 @@ class _HomeScreenState extends State<MemHomeScreen> {
     );
   }
 
-
   void goToGamePage() {
     Navigator.pop(context);
     Navigator.push(
@@ -52,6 +55,7 @@ class _HomeScreenState extends State<MemHomeScreen> {
       MaterialPageRoute(builder: (context) => GamesListPage()),
     );
   }
+
   void showPauseDialog() {
     showDialog(
       context: context,
@@ -59,30 +63,35 @@ class _HomeScreenState extends State<MemHomeScreen> {
         return AlertDialog(
           backgroundColor: Colors.grey[500],
           title: Text("M E N U"),
-          content:
-              Text("Game is Paused. What would you like to do?"),
+          content: Text("Game is Paused. What would you like to do?"),
           actions: <Widget>[
             TextButton(
-              child: Text("Restart",style: TextStyle(color: Colors.grey[900]),),
+              child: Text(
+                "Restart",
+                style: TextStyle(color: Colors.grey[900]),
+              ),
               onPressed: () {
                 restartGame();
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text("Cancel",style: TextStyle(color: Colors.grey[900]),),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.grey[900]),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text("Quit",style: TextStyle(color: Colors.grey[900]),),
+              child: Text(
+                "Quit",
+                style: TextStyle(color: Colors.grey[900]),
+              ),
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            GamesListPage())); // Adjust this as needed for your app
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => GamesListPage()));
               },
             ),
           ],
@@ -108,8 +117,10 @@ class _HomeScreenState extends State<MemHomeScreen> {
         ),
         centerTitle: true,
       ),
-      drawer: MyGameDrawer(onHomeTap: goToHomePage,
-      onGameTap: goToGamePage,),
+      drawer: MyGameDrawer(
+        onHomeTap: goToHomePage,
+        onGameTap: goToGamePage,
+      ),
       backgroundColor: Colors.grey,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -152,6 +163,15 @@ class _HomeScreenState extends State<MemHomeScreen> {
                         _game.gameImg![index] = _game.cards_list[index];
                         _game.matchCheck.add({index: _game.cards_list[index]});
                       });
+                      // Check the card's fruit to determine which sound to play
+                      String fruitName = _game.cards_list[index]
+                          .split('/')
+                          .last
+                          .split('.')
+                          .first;
+                      playSound(
+                          '$fruitName.wav'); // Play the corresponding sound
+
                       if (_game.matchCheck.length == 2) {
                         if (_game.matchCheck[0].values.first ==
                             _game.matchCheck[1].values.first) {

@@ -38,7 +38,6 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
     );
   }
 
-
   void goToGamePage() {
     Navigator.pop(context);
     Navigator.push(
@@ -56,29 +55,19 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
           content: Text("Game is Paused. What would you like to do?"),
           actions: <Widget>[
             TextButton(
-              child: Text(
-                "Restart",
-                style: TextStyle(color: Colors.grey[900]),
-              ),
+              child:
+                  Text("Restart", style: TextStyle(color: Colors.deepPurple)),
               onPressed: () {
                 Navigator.of(context).pop();
                 _resetGame();
               },
             ),
             TextButton(
-              child: Text(
-                "Cancel",
-                style: TextStyle(color: Colors.grey[900]),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: Text("Cancel", style: TextStyle(color: Colors.deepPurple)),
+              onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text(
-                "Quit",
-                style: TextStyle(color: Colors.grey[900]),
-              ),
+              child: Text("Quit", style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
                 Navigator.pop(context); // Navigate back to the previous screen
@@ -93,18 +82,22 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
       home: Scaffold(
-        backgroundColor: Colors.lightBlue.shade100,
+        backgroundColor: Colors.lightBlue.shade50,
         appBar: AppBar(
           backgroundColor: Colors.lightBlue.shade300,
           centerTitle: true,
           title: IconButton(
             icon: Icon(Icons.pause_circle_filled, color: Colors.white),
             onPressed: showPauseDialog,
+            tooltip: 'Pause Game',
           ),
         ),
-          drawer: MyGameDrawer(onHomeTap: goToHomePage,
-            onGameTap: goToGamePage,),
+        drawer: MyGameDrawer(onHomeTap: goToHomePage, onGameTap: goToGamePage),
         body: SafeArea(
           child: NumberTracingPage(),
         ),
@@ -122,11 +115,20 @@ class _NumberTracingPageState extends State<NumberTracingPage> {
   Random random = Random();
   int randomNumber = 0;
   List<DrawingArea> points = [];
+  Color selectedColor = Colors.black; // Default color
 
+  // Method to reset the game
   void _resetGame() {
     setState(() {
       randomNumber = random.nextInt(10);
       points.clear();
+    });
+  }
+
+  // Method to update color
+  void _updateColor(Color color) {
+    setState(() {
+      selectedColor = color;
     });
   }
 
@@ -148,23 +150,69 @@ class _NumberTracingPageState extends State<NumberTracingPage> {
               onTap: _resetGame,
               child: Text(
                 '$randomNumber',
-                style: TextStyle(fontSize: 150, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 150,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple),
               ),
             ),
           ),
         ),
+        Divider(height: 2.0, color: Colors.grey[800]),
         Expanded(
           flex: 2,
-          child: LineDraw(
-            points: points,
-            onPointsUpdate: (updatedPoints) {
-              setState(() {
-                points = updatedPoints;
-              });
-            },
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.blue.shade100, Colors.blue.shade400],
+              ),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _colorButton(Colors.red),
+                      _colorButton(Colors.blue),
+                      _colorButton(Colors.green),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: _resetGame,
+                        color: Colors.black,
+                        tooltip: 'Clear Drawing',
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: LineDraw(
+                    points: points,
+                    onPointsUpdate: (updatedPoints) {
+                      setState(() {
+                        points = updatedPoints;
+                      });
+                    },
+                    selectedColor: selectedColor,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _colorButton(Color color) {
+    return IconButton(
+      icon: Icon(Icons.color_lens),
+      onPressed: () => _updateColor(color),
+      color: color,
+      tooltip: 'Change Color to ${color.toString()}',
     );
   }
 }
@@ -172,16 +220,18 @@ class _NumberTracingPageState extends State<NumberTracingPage> {
 class LineDraw extends StatefulWidget {
   final List<DrawingArea> points;
   final Function(List<DrawingArea>) onPointsUpdate;
+  final Color selectedColor;
 
-  LineDraw({required this.points, required this.onPointsUpdate});
+  LineDraw(
+      {required this.points,
+      required this.onPointsUpdate,
+      required this.selectedColor});
 
   @override
   _LineDrawState createState() => _LineDrawState();
 }
 
 class _LineDrawState extends State<LineDraw> {
-  Color selectedColor = Colors.black;
-
   void _updatePoints(DrawingArea newPoint) {
     widget.onPointsUpdate(List.from(widget.points)..add(newPoint));
   }
@@ -195,7 +245,7 @@ class _LineDrawState extends State<LineDraw> {
           areaPaint: Paint()
             ..strokeCap = StrokeCap.round
             ..isAntiAlias = true
-            ..color = selectedColor
+            ..color = widget.selectedColor
             ..strokeWidth = 2.0,
         ));
       },
@@ -205,7 +255,7 @@ class _LineDrawState extends State<LineDraw> {
           areaPaint: Paint()
             ..strokeCap = StrokeCap.round
             ..isAntiAlias = true
-            ..color = selectedColor
+            ..color = widget.selectedColor
             ..strokeWidth = 2.0,
         ));
       },
