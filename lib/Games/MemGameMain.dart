@@ -1,16 +1,64 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/Games/info_card.dart';
 import 'package:fyp/components/game_drawer.dart';
 import 'package:fyp/Games/gamesmain.dart';
-import 'package:fyp/Games/games_util.dart';
 import 'package:fyp/pages/landing_page.dart';
-import 'package:audioplayers/audioplayers.dart'; // Import the audioplayers package
+import 'package:fyp/pages/leaderboard.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+class Game {
+  List<String>? gameImg;
+  final hiddenCardPath = 'assets/hidden.png';
+  List<Map<int, String>> matchCheck = [];
+  List<String> cardsList = [];
+
+  void initGame(String category) {
+    List<String> imagePaths = getCategoryImages(category);
+    cardsList = List.from(imagePaths)..addAll(imagePaths);
+    cardsList.shuffle();
+    gameImg = List.generate(cardsList.length, (index) => hiddenCardPath);
+    matchCheck = [];
+  }
+
+  List<String> getCategoryImages(String category) {
+    String basePath = 'images/';
+    switch (category.toLowerCase()) {
+      case 'vegetables':
+        return [
+          '$basePath/potato.png',
+          '$basePath/onion.png',
+          '$basePath/carrot.png',
+          '$basePath/tomato.png'
+        ];
+      case 'animals':
+        return [
+          '$basePath/cat.png',
+          '$basePath/dog.png',
+          '$basePath/lion.png',
+          '$basePath/tiger.png'
+        ];
+      case 'birds':
+        return [
+          '$basePath/crow.png',
+          '$basePath/pigeon.png',
+          '$basePath/peacock.png',
+          '$basePath/parrot.png'
+        ];
+      default:
+        return [
+          '$basePath/apple.png',
+          '$basePath/banana.png',
+          '$basePath/grapes.png',
+          '$basePath/mango.png'
+        ];
+    }
+  }
+}
+
 class MemHomeScreen extends StatefulWidget {
-  const MemHomeScreen({Key? key}) : super(key: key);
+  final String category;
+  const MemHomeScreen({Key? key, required this.category}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -19,23 +67,18 @@ class MemHomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<MemHomeScreen> {
   TextStyle whiteText = TextStyle(color: Colors.white);
   Game _game = Game();
-  AudioPlayer audioPlayer = AudioPlayer(); // Audio player instance
   int tries = 0;
   int score = 0;
 
   @override
   void initState() {
     super.initState();
-    _game.initGame();
-  }
-
-  void playSound(String fileName) {
-    audioPlayer.play(AssetSource(fileName));
+    _game.initGame(widget.category);
   }
 
   void restartGame() {
     setState(() {
-      _game.initGame();
+      _game.initGame(widget.category);
       tries = 0;
       score = 0;
     });
@@ -44,24 +87,27 @@ class _HomeScreenState extends State<MemHomeScreen> {
   void updateFirebaseWithScore() {
     final currentUserEmail = FirebaseAuth.instance.currentUser!.email;
     FirebaseFirestore.instance.collection('users').doc(currentUserEmail).set({
-      'bestScore': tries,
+      'bestScore': score,
+      'tries': tries, // Add tries to store in Firebase
     }, SetOptions(merge: true));
   }
 
   void goToHomePage() {
     Navigator.pop(context);
     Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => HomePage()),
-    );
+        context, MaterialPageRoute(builder: (context) => HomePage()));
   }
 
   void goToGamePage() {
     Navigator.pop(context);
     Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => GamesListPage()),
-    );
+        context, MaterialPageRoute(builder: (context) => GamesListPage()));
+  }
+
+  void goToLeaderboard() {
+    Navigator.pop(context);
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => LeaderboardPage()));
   }
 
   void showPauseDialog() {
@@ -74,31 +120,20 @@ class _HomeScreenState extends State<MemHomeScreen> {
           content: Text("Game is Paused. What would you like to do?"),
           actions: <Widget>[
             TextButton(
-              child: Text(
-                "Restart",
-                style: TextStyle(color: Colors.grey[900]),
-              ),
+              child: Text("Restart", style: TextStyle(color: Colors.grey[900])),
               onPressed: () {
                 restartGame();
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text(
-                "Cancel",
-                style: TextStyle(color: Colors.grey[900]),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: Text("Cancel", style: TextStyle(color: Colors.grey[900])),
+              onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text(
-                "Quit",
-                style: TextStyle(color: Colors.grey[900]),
-              ),
+              child: Text("Quit", style: TextStyle(color: Colors.grey[900])),
               onPressed: () {
-                updateFirebaseWithScore(); // Update score to Firebase when the user quits
+                updateFirebaseWithScore();
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => GamesListPage()));
               },
@@ -129,6 +164,7 @@ class _HomeScreenState extends State<MemHomeScreen> {
       drawer: MyGameDrawer(
         onHomeTap: goToHomePage,
         onGameTap: goToGamePage,
+        onLeaderboardTap: goToLeaderboard,
       ),
       backgroundColor: Colors.grey,
       body: Column(
@@ -139,10 +175,9 @@ class _HomeScreenState extends State<MemHomeScreen> {
             child: Text(
               "Memory Game",
               style: TextStyle(
-                fontSize: 48.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+                  fontSize: 48.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
           ),
           SizedBox(height: 24.0),
@@ -168,41 +203,17 @@ class _HomeScreenState extends State<MemHomeScreen> {
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                        tries++;
-                        _game.gameImg![index] = _game.cards_list[index];
-                        _game.matchCheck.add({index: _game.cards_list[index]});
-                      });
-                      // Check the card's fruit to determine which sound to play
-                      String fruitName = _game.cards_list[index]
-                          .split('/')
-                          .last
-                          .split('.')
-                          .first;
-                      playSound(
-                          '$fruitName.wav'); // Play the corresponding sound
-
-                      if (_game.matchCheck.length == 2) {
-                        if (_game.matchCheck[0].values.first ==
-                            _game.matchCheck[1].values.first) {
-                          score += 100;
-                          _game.matchCheck.clear();
-                          // Only show pause dialog when the score reaches 400
-                          if (score == 400) {
-                            Future.delayed(
-                                Duration(seconds: 1), showPauseDialog);
-                          }
-                        } else {
-                          Future.delayed(Duration(milliseconds: 500), () {
-                            setState(() {
-                              _game.gameImg![_game.matchCheck[0].keys.first] =
-                                  _game.hiddenCardpath;
-                              _game.gameImg![_game.matchCheck[1].keys.first] =
-                                  _game.hiddenCardpath;
-                              _game.matchCheck.clear();
+                        if (_game.gameImg![index] == _game.hiddenCardPath) {
+                          tries++;
+                          _game.gameImg![index] = _game.cardsList[index];
+                          _game.matchCheck.add({index: _game.cardsList[index]});
+                          if (_game.matchCheck.length == 2) {
+                            Future.delayed(Duration(milliseconds: 500), () {
+                              checkMatch();
                             });
-                          });
+                          }
                         }
-                      }
+                      });
                     },
                     child: Container(
                       padding: EdgeInsets.all(16.0),
@@ -221,5 +232,21 @@ class _HomeScreenState extends State<MemHomeScreen> {
         ],
       ),
     );
+  }
+
+  void checkMatch() {
+    if (_game.matchCheck[0].values.first == _game.matchCheck[1].values.first &&
+        _game.matchCheck[0].keys.first != _game.matchCheck[1].keys.first) {
+      score += 100;
+      _game.matchCheck.clear();
+      if (score == 400) {
+        showPauseDialog();
+      }
+    } else {
+      _game.gameImg![_game.matchCheck[0].keys.first] = _game.hiddenCardPath;
+      _game.gameImg![_game.matchCheck[1].keys.first] = _game.hiddenCardPath;
+      _game.matchCheck.clear();
+    }
+    setState(() {});
   }
 }

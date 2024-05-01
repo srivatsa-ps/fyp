@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fyp/Games/LineGameMain.dart';
+import 'package:fyp/Games/MemGameCateg.dart';
 import 'package:fyp/Games/MemGameMain.dart';
 import 'package:fyp/Games/ShapeGameMain.dart';
+import 'package:fyp/Games/matchingGame.dart';
 import '../components/drawer.dart';
 import '../pages/landing_page.dart';
+import '../pages/leaderboard.dart';
 import '../pages/profile_page.dart';
 
 class GamesListPage extends StatefulWidget {
@@ -13,9 +16,10 @@ class GamesListPage extends StatefulWidget {
 
 class _GamesListPageState extends State<GamesListPage> {
   final List<Map<String, dynamic>> games = [
-    {'title': 'Memory Game', 'widget': MemHomeScreen()},
-    {'title': 'Shape Game', 'widget': BubblePopGame()},
-    {'title': 'Line Game', 'widget': NumberTracingApp()},
+    {'title': 'Memory Game', 'widget': CategorySelectionPage()},
+    {'title': 'Bubble Game', 'widget': BubblePopGame()},
+    {'title': 'Tracing Game', 'widget': CategorySelectionPagetwo()},
+    {'title': 'Matching Game', 'widget': ColorMatchGame()},
   ];
 
   void goToHomePage() {
@@ -34,6 +38,14 @@ class _GamesListPageState extends State<GamesListPage> {
     );
   }
 
+  void goToleaderboard() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LeaderboardPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,6 +60,7 @@ class _GamesListPageState extends State<GamesListPage> {
       drawer: MyDrawer(
         onProfileTap: goToProfilePage,
         onHomeTap: goToHomePage,
+        onLeaderboardTap: goToleaderboard,
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -106,7 +119,7 @@ class _GamesListPageState extends State<GamesListPage> {
                 );
               },
             ),
-          ),
+          )
         ],
       ),
     );

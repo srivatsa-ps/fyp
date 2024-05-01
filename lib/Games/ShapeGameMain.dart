@@ -2,6 +2,11 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+import '../components/game_drawer.dart';
+import '../pages/landing_page.dart';
+import '../pages/leaderboard.dart';
+import 'gamesmain.dart';
+
 void main() {
   runApp(BubblePopGame());
 }
@@ -36,13 +41,108 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   final int totalBubbles = 10;
   final random = Random();
   final List<AnimationController> _controllers = [];
+  List<bool> numbersCrossed = List.generate(10, (index) => false);
   Stopwatch stopwatch = Stopwatch();
   String bestTime = "None";
   Timer? _timer;
+  void goToHomePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+  void goToGamePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => GamesListPage()),
+    );
+  }
+
+  void goToleaderboard() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LeaderboardPage()),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initializeGame();
+  }
+
+  @override
+  void dispose() {
+    _controllers.forEach((controller) => controller.dispose());
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void initializeGame() {
+    for (int i = 0; i < totalBubbles; i++) {
+      final controller = AnimationController(
+        duration: const Duration(seconds: 25),
+        vsync: this,
+      );
+      _controllers.add(controller);
+      double initialX = random.nextDouble();
+      double initialY = random.nextDouble();
+      bubbles.add(Bubble(
+        number: i + 1,
+        x: initialX,
+        y: initialY,
+        vx: (random.nextBool() ? 1 : -1) * 0.00005,
+        vy: (random.nextBool() ? 1 : -1) * 0.00005,
+        controller: controller,
+      ));
+      controller.addListener(() => updateBubblePosition());
+      controller.repeat();
+    }
+  }
+
+  void updateBubblePosition() {
+    for (var i = 0; i < bubbles.length; i++) {
+      Bubble bubble = bubbles[i];
+      double newX = bubble.x + bubble.vx;
+      double newY = bubble.y + bubble.vy;
+      if (newX < 0 || newX > 1) {
+        bubble.vx = -bubble.vx;
+        newX = max(0, min(newX, 1));
+      }
+      if (newY < 0 || newY > 1) {
+        bubble.vy = -bubble.vy;
+        newY = max(0, min(newY, 1));
+      }
+      setState(() {
+        bubble.x = newX;
+        bubble.y = newY;
+      });
+    }
+  }
+
+  void checkBubble(int number) {
+    if (number == nextNumber) {
+      setState(() {
+        numbersCrossed[nextNumber - 1] = true; // Cross out the number
+        bubbles.removeWhere((b) => b.number == number);
+        nextNumber++;
+        checkStopwatch();
+      });
+    } else {
+      resetGame();
+      _showFailureDialog();
+    }
+  }
 
   void resetGame() {
     setState(() {
       nextNumber = 1;
+      numbersCrossed =
+          List.generate(10, (_) => false); // Reset all numbers as uncrossed
       bubbles.clear();
       _controllers.forEach((controller) => controller.dispose());
       _controllers.clear();
@@ -50,14 +150,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       stopwatch.stop();
       initializeGame();
     });
-  }
-
-  void startStopwatch() {
-    if (!stopwatch.isRunning) {
-      stopwatch.start();
-      _timer =
-          Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {}));
-    }
   }
 
   void checkStopwatch() {
@@ -84,82 +176,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     return int.parse(parts[0]) * 60000 + int.parse(parts[1]) * 1000;
   }
 
-  void initializeGame() {
-    for (int i = 0; i < totalBubbles; i++) {
-      final controller = AnimationController(
-        duration: const Duration(seconds: 25),
-        vsync: this,
-      );
-      _controllers.add(controller);
-      double initialX = random.nextDouble();
-      double initialY = random.nextDouble();
-      bubbles.add(Bubble(
-        number: i + 1,
-        x: initialX,
-        y: initialY,
-        vx: (random.nextBool() ? 1 : -1) * 0.0001,
-        vy: (random.nextBool() ? 1 : -1) * 0.0001,
-        controller: controller,
-      ));
-      controller.addListener(updateBubblePosition);
-      controller.repeat();
-    }
-  }
-
-  void updateBubblePosition() {
-    for (var i = 0; i < bubbles.length; i++) {
-      Bubble bubble = bubbles[i];
-      double newX = bubble.x + bubble.vx;
-      double newY = bubble.y + bubble.vy;
-      if (newX < 0 || newX > 1) {
-        bubble.vx = -bubble.vx;
-        newX = max(0, min(newX, 1));
-      }
-      if (newY < 0 || newY > 1) {
-        bubble.vy = -bubble.vy;
-        newY = max(0, min(newY, 1));
-      }
-      setState(() {
-        bubble.x = newX;
-        bubble.y = newY;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initializeGame();
-  }
-
-  @override
-  void dispose() {
-    _controllers.forEach((controller) => controller.dispose());
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void checkBubble(int number) {
-    if (number == nextNumber) {
-      if (nextNumber == 1) startStopwatch();
-      setState(() {
-        bubbles.removeWhere((b) => b.number == number);
-        nextNumber++;
-      });
-      checkStopwatch();
-    } else {
-      resetGame();
-      _showFailureDialog();
-    }
-  }
-
   void _showVictoryDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: Text('Congratulations!'),
-        content:
-            Text('You popped all the bubbles in order! Best Time: $bestTime'),
+        content: Text(
+            'You popped all the bubbles in order! Best Time: $bestTime',
+            style: TextStyle(color: Colors.black)),
         actions: <Widget>[
           TextButton(
             onPressed: () {
@@ -178,7 +202,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: Text('Oops!'),
-        content: Text('Wrong order! Try again!'),
+        content: Text('Wrong order! Try again!',
+            style: TextStyle(color: Colors.black)),
         actions: <Widget>[
           TextButton(
             onPressed: () {
@@ -209,37 +234,70 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Center(
               child: stopwatch.isRunning
-                  ? Text(
-                      _formattedTime(stopwatch.elapsedMilliseconds),
-                      style: TextStyle(fontSize: 20),
-                    )
+                  ? Text(_formattedTime(stopwatch.elapsedMilliseconds),
+                      style: TextStyle(fontSize: 20))
                   : Text("00:00", style: TextStyle(fontSize: 20)),
             ),
           )
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue.shade300, Colors.indigo.shade400],
+      drawer: MyGameDrawer(
+        onHomeTap: goToHomePage,
+        onGameTap: goToGamePage,
+        onLeaderboardTap: goToleaderboard,
+      ),
+      body: Column(
+        children: [
+          Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                  10,
+                  (index) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            decoration: numbersCrossed[index]
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                            color: numbersCrossed[index]
+                                ? Colors.red
+                                : Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )),
+            ),
           ),
-        ),
-        child: Stack(
-          children: bubbles
-              .map(
-                (bubble) => Positioned(
-                  left: bubble.x * MediaQuery.of(context).size.width,
-                  top: bubble.y * MediaQuery.of(context).size.height,
-                  child: GestureDetector(
-                    onTap: () => checkBubble(bubble.number),
-                    child: BubbleWidget(number: bubble.number),
-                  ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.blue.shade300, Colors.indigo.shade400],
                 ),
-              )
-              .toList(),
-        ),
+              ),
+              child: Stack(
+                children: bubbles
+                    .map(
+                      (bubble) => Positioned(
+                        left: bubble.x * MediaQuery.of(context).size.width,
+                        top: bubble.y * MediaQuery.of(context).size.height,
+                        child: GestureDetector(
+                          onTap: () => checkBubble(bubble.number),
+                          child: BubbleWidget(number: bubble.number),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

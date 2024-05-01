@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fyp/components/drawer.dart';
+import 'package:fyp/pages/profile_page.dart';
+
+import 'landing_page.dart';
 
 class LeaderboardPage extends StatefulWidget {
   const LeaderboardPage({Key? key}) : super(key: key);
@@ -21,8 +25,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   Future<void> fetchLeaderboard() async {
     QuerySnapshot snapshot = await _firestore
         .collection('users')
-        .orderBy('bestScore',
-            descending: false) // Fetch with ascending order for lower scores
+        .orderBy('tries',
+            descending: false) // Fetch with ascending order for lower tries
         .limit(10)
         .get();
 
@@ -32,7 +36,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       if (data != null) {
         loadedLeaderboard.add(UserScore(
           name: data['username'] ?? 'Anonymous',
-          score: data['bestScore'] as int? ?? 0,
+          tries:
+              data['tries'] as int? ?? 0, // Use 'tries' instead of 'bestScore'
         ));
       }
     }
@@ -42,20 +47,28 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     });
   }
 
-  Widget rankIcon(int rank) {
-    // Function to return appropriate icon for rank
-    switch (rank) {
-      case 0:
-        return Icon(Icons.star, color: Colors.yellow[700], size: 30); // Gold
-      case 1:
-        return Icon(Icons.star_half,
-            color: Colors.grey[350], size: 30); // Silver
-      case 2:
-        return Icon(Icons.star_border,
-            color: Colors.brown[600], size: 30); // Bronze
-      default:
-        return SizedBox(); // Empty box for ranks below top 3
-    }
+  void goToHomePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+  void goToProfilePage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePage()),
+    );
+  }
+
+  void goToleaderboard() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LeaderboardPage()),
+    );
   }
 
   @override
@@ -79,6 +92,11 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             ])),
         backgroundColor: Colors.blueGrey,
         elevation: 0,
+      ),
+      drawer: MyDrawer(
+        onProfileTap: goToProfilePage,
+        onHomeTap: goToHomePage,
+        onLeaderboardTap: goToleaderboard,
       ),
       body: _leaderboard.isEmpty
           ? Center(child: CircularProgressIndicator())
@@ -112,8 +130,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       _leaderboard[index].name,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text('Best Score: ${_leaderboard[index].score}'),
-                    trailing: rankIcon(index),
+                    subtitle: Text(
+                        'Tries: ${_leaderboard[index].tries}'), // Display tries instead of best score
                   ),
                 );
               },
@@ -124,7 +142,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
 class UserScore {
   final String name;
-  final int score;
+  final int tries; // Change from 'score' to 'tries'
 
-  UserScore({required this.name, required this.score});
+  UserScore(
+      {required this.name,
+      required this.tries}); // Change from 'score' to 'tries'
 }

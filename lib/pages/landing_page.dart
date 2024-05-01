@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fyp/Games/gamesmain.dart';
 import 'package:fyp/pages/forum.dart';
 import 'package:fyp/pages/leaderboard.dart';
+import 'package:fyp/pages/quotes.dart';
 
 import '../auth/auth.dart';
 import 'login_page.dart';
@@ -37,7 +38,14 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        backgroundColor: Colors.blue, // Change app bar color
+        title: Text(
+          'Welcome $name',
+          style: TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: () => signOut(context),
@@ -96,99 +104,80 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 SizedBox(height: 40.0),
-                GestureDetector(
-                  onTap: () {
-                    try {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Forum()),
-                      );
-                    } catch (e) {
-                      print('Error navigating to Forum page: $e');
-                    }
-                  },
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: Text(
-                      'Discussion Forum',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                // Customized Buttons
+                _buildButton(
+                  context,
+                  'Discussion Forum',
+                  Forum(),
                 ),
                 SizedBox(height: 20.0),
-                GestureDetector(
-                  onTap: () {
-                    try {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => GamesListPage()),
-                      );
-                    } catch (e) {
-                      print('Error navigating to Forum page: $e');
-                    }
-                  },
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: Text(
-                      'Play Games',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                _buildButton(
+                  context,
+                  'Play Games',
+                  GamesListPage(),
                 ),
                 SizedBox(height: 20.0),
-                GestureDetector(
-                  onTap: () {
-                    try {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => LeaderboardPage()),
-                      );
-                    } catch (e) {
-                      print('Error navigating to Leaderboard page: $e');
-                    }
-                  },
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    child: Text(
-                      'Leaderboard',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                _buildButton(
+                  context,
+                  'Leaderboard',
+                  LeaderboardPage(),
                 ),
-                // Add your GestureDetector widgets here
+                SizedBox(height: 20.0),
+                _buildButton(
+                  context,
+                  'Quote for the day',
+                  QuotePage(),
+                ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  // Customized Button Widget
+  Widget _buildButton(BuildContext context, String text, Widget route) {
+    return GestureDetector(
+      onTap: () {
+        try {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => route),
+          );
+        } catch (e) {
+          print('Error navigating to $text page: $e');
+        }
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.6,
+        padding: EdgeInsets.symmetric(vertical: 15.0),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue, Colors.lightBlue],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(30.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }

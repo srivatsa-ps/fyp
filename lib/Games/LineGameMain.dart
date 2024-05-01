@@ -2,30 +2,88 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fyp/components/game_drawer.dart';
 import '../pages/landing_page.dart';
+import '../pages/leaderboard.dart';
 import 'gamesmain.dart';
 
+enum Category { numbers, alphabets }
+
+// void main() {
+//   runApp(MaterialApp(home: CategorySelectionPage()));
+// }
+
+class CategorySelectionPagetwo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Choose Category'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              child: Text('Numbers'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          NumberTracingApp(category: Category.numbers)),
+                );
+              },
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              child: Text('Alphabets'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          NumberTracingApp(category: Category.alphabets)),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class NumberTracingApp extends StatefulWidget {
+  final Category category;
+
+  NumberTracingApp({required this.category});
+
   @override
   State<NumberTracingApp> createState() => _NumberTracingAppState();
 }
 
 class _NumberTracingAppState extends State<NumberTracingApp> {
   late Random random;
-  late int randomNumber;
+  late String randomValue; // Changed to string to handle numbers and letters
   late List<DrawingArea> points;
 
   @override
   void initState() {
     super.initState();
     random = Random();
-    randomNumber = 0;
+    randomValue = '';
     points = [];
     _resetGame(); // Initialize the game state
   }
 
   void _resetGame() {
     setState(() {
-      randomNumber = random.nextInt(10);
+      if (widget.category == Category.numbers) {
+        randomValue = random.nextInt(10).toString(); // Numbers 0-9
+      } else {
+        randomValue =
+            String.fromCharCode(random.nextInt(26) + 65); // Letters A-Z
+      }
       points.clear();
     });
   }
@@ -35,6 +93,14 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+  void goToLeaderboard() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LeaderboardPage()),
     );
   }
 
@@ -51,8 +117,10 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("MENU"),
-          content: Text("Game is Paused. What would you like to do?"),
+          backgroundColor: Colors.grey[500],
+          title: Text("M E N U"),
+          content: Text("Game is Paused. What would you like to do?",
+              style: TextStyle(color: Colors.black)),
           actions: <Widget>[
             TextButton(
               child:
@@ -78,6 +146,7 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
       },
     );
   }
+  // Remaining methods including goToHomePage, goToLeaderboard, goToGamePage, showPauseDialog are unchanged
 
   @override
   Widget build(BuildContext context) {
@@ -97,9 +166,13 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
             tooltip: 'Pause Game',
           ),
         ),
-        drawer: MyGameDrawer(onHomeTap: goToHomePage, onGameTap: goToGamePage),
+        drawer: MyGameDrawer(
+          onHomeTap: goToHomePage,
+          onGameTap: goToGamePage,
+          onLeaderboardTap: goToLeaderboard,
+        ),
         body: SafeArea(
-          child: NumberTracingPage(),
+          child: NumberTracingPage(category: widget.category),
         ),
       ),
     );
@@ -107,35 +180,41 @@ class _NumberTracingAppState extends State<NumberTracingApp> {
 }
 
 class NumberTracingPage extends StatefulWidget {
+  final Category category;
+
+  NumberTracingPage({required this.category});
+
   @override
   _NumberTracingPageState createState() => _NumberTracingPageState();
 }
 
 class _NumberTracingPageState extends State<NumberTracingPage> {
   Random random = Random();
-  int randomNumber = 0;
+  String randomValue = ''; // Holds either a number or a letter
   List<DrawingArea> points = [];
-  Color selectedColor = Colors.black; // Default color
-
-  // Method to reset the game
-  void _resetGame() {
-    setState(() {
-      randomNumber = random.nextInt(10);
-      points.clear();
-    });
-  }
-
-  // Method to update color
-  void _updateColor(Color color) {
-    setState(() {
-      selectedColor = color;
-    });
-  }
+  Color selectedColor = Colors.black;
 
   @override
   void initState() {
     super.initState();
     _resetGame();
+  }
+
+  void _resetGame() {
+    setState(() {
+      if (widget.category == Category.numbers) {
+        randomValue = random.nextInt(10).toString();
+      } else {
+        randomValue = String.fromCharCode(random.nextInt(26) + 65);
+      }
+      points.clear();
+    });
+  }
+
+  void _updateColor(Color color) {
+    setState(() {
+      selectedColor = color;
+    });
   }
 
   @override
@@ -149,7 +228,7 @@ class _NumberTracingPageState extends State<NumberTracingPage> {
             child: GestureDetector(
               onTap: _resetGame,
               child: Text(
-                '$randomNumber',
+                '$randomValue',
                 style: TextStyle(
                     fontSize: 150,
                     fontWeight: FontWeight.bold,
